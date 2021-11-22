@@ -1,0 +1,12 @@
+1.1       multiple-choice questions
+1.1.1     b <U+F0FC><U+F0FC>
+1.1.2     c <U+F0FC><U+F0FC>
+1.1.3     a <U+F0FC><U+F0FC>
+1.1.4     b <U+F0FC><U+F0FC>
+1.1.5     d <U+F0FC><U+F0FC>
+1.1.6     c <U+F0FC><U+F0FC>
+1.1.7     b <U+F0FC><U+F0FC>
+1.1.8     a <U+F0FC><U+F0FC>
+1.1.9     c <U+F0FC><U+F0FC>
+1.1.10    a <U+F0FC><U+F0FC>
+(10 x 2)       (20)
