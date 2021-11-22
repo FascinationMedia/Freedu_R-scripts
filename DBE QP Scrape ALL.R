@@ -44,7 +44,6 @@ BE_URL_PastPaper_child_URLtext
 #
 df_URLnText <-  merge(x=DBE_URL_PastPaper_child_URLs, y=BE_URL_PastPaper_child_URLtext, by="ROW")
 
-df_URLnText
 
 
 

@@ -85,19 +85,8 @@ df_FULL$Paper_Language <-ifelse(is.na(df_FULL$Paper_Language) &
                                 df_FULL$Paper_Language)
 df_FULL
 NA_DF <- df_FULL %>% filter_all(any_vars(is.na(.))) 
-NA_DF                
+NA_DF     
 
-
-library(pdftools)
-Business_Single_url <- ("https://www.education.gov.za/LinkClick.aspx?fileticket=Q9AdzrjDjok%3d&tabid=2702&portalid=0&mid=9616")
-my_pdf_text <- pdf_text(Business_Single_url)
-my_pdf_text
-my_pdf_txt_list <- str_split(my_pdf_text, "\n")
-my_pdf_txt_list
-
-Maths_Single_url <- ("https://www.education.gov.za/LinkClick.aspx?link=https%3a%2f%2fwww.education.gov.za%5cPortals%5c0%5cCD%5c2019+November+past+papers%5cNon-Languages+Nov+2019+Memos+PDF%5cMathematics%5cMathematics+P1+Nov+2019+Memo+Afr+%26+Eng.pdf&tabid=2556&portalid=0&mid=9143")
-my_pdf_text <- pdf_text(Maths_Single_url)
-my_pdf_text
-my_pdf_txt_list <- str_split(my_pdf_text, "\n")
-my_pdf_txt_list
-
+NA_DF_unlist <- unlist(NA_DF)
+typeof(NA_DF_unlist)
+writeLines(NA_DF_unlist,"DOElist.txt")
