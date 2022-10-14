@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 subject/paper_no/regex_start/regex_end 
 AGRICULTURAL MANAGEMENT PRACTICES/PAPER 1/1.1.1 /"1.2 "
 AGRICULTURAL SCIENCES/PAPER 1/1.1.1 /"1.2 "
@@ -17,3 +18,21 @@ Physical Sciences/Paper 1/1.1.1 /"1.2 "
 technical sciences/Paper 1/1.1.1 /"1.2 "
 technical sciences/Paper 2/1.1.1 /"1.2 "
 tourism/paper 1/1.1.1 /"1.2 "
+=======
+subject/paper_no/regex
+AGRICULTURAL MANAGEMENT PRACTICES/PAPER 1/1.1.1
+AGRICULTURAL SCIENCES/PAPER 1/1.1.1
+AGRICULTURAL SCIENCES/PAPER 2/1.1.1
+AGRICULTURAL AGRICULTURAL TECHNOLOGY/PAPER 1/1.1.1
+Computer Applications Technology/Paper 2/1.1
+CONSUMER STUDIES/Paper 1/1.1.1
+Economics/Paper 1/1.1.1
+Economics/Paper 2/1.1.1
+Geography/Paper 2/1.1.1
+Hospitality Studies/Paper 2/1.1.1
+Physical Sciences/Paper 2/1.1.1
+Physical Sciences/Paper 1/1.1.1
+technical sciences/Paper 1/1.1.1
+technical sciences/Paper 2/1.1.1
+tourism/paper 1/1.1.1
+>>>>>>> 4bbeb8b2eb410e993ba185c41f1ec5cab0aaf9d4
