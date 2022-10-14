@@ -409,28 +409,31 @@ write.csv(DF_Final,"DownloadList.csv", row.names = FALSE)
 #-----------------------------------------------------------------------------------------------------------
 # loop through Download list to create "questions.dart"for 
 #-----------------------------------------------------------------------------------------------------------
-DF_Final <- as.data.frame(read.csv("DownloadList.csv", sep = ',', header = TRUE ))
+DF_Temp1 <- as.data.frame(read.csv("DownloadList.csv", sep = ',', header = TRUE ))
+Df_Final <- DF_Temp1[DF_Temp1$Exam_Year.x>2014,]
 Freedu_App_Fmt <- data.frame()
 #for (row in 1:norows(DF_tempCombined)) 
-for (row in 1:10)
-{
-message( 'row no', row)
-#message( 'URL>', DF_OnlyPDFs$PDF_URL[row], '</URL')
-paper_link  <- DF_Final$QP_URL[row]
-PDF_list    <- pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
+row <- 1 
+for (row in 1:5)
+  {
+  paper_link  <- Df_Final$QP_URL[row]
+  PDF_list    <- pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
+  memo_link  <- Df_Final$Memo_URL[row]
+  PDF_Memo    <- pdf_text(memo_link) %>% readr::read_lines() %>% str_trim()
+  PDF_Memo_unlist <- unlist(PDF_Memo)
 #
 #-------------------------------------------------------------------------------
 # find multiple choice start
 #-------------------------------------------------------------------------------
 #   
-   regex_S     <- paste0("^",DF_Final$regex_start[row]," ")
+   regex_S     <- paste0("^",Df_Final$regex_start[row]," ")
    strt_inx    <- (str_detect(PDF_list, regex_S))
 #   
 #-------------------------------------------------------------------------------
 # find multiple choice end
 #-------------------------------------------------------------------------------
 #   
-   regex_end <- paste0("^",toString(DF_Final$regex_end[row])," ")
+   regex_end <- paste0("^",toString(Df_Final$regex_end[row])," ")
    end_inx <- (str_detect(PDF_list, regex_end))
 #   
 #-------------------------------------------------------------------------------
@@ -439,12 +442,12 @@ PDF_list    <- pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
 # 
   tryCatch(
     {
-      message("start & end successfull")
       temp_DF <- PDF_list[which(strt_inx):(which(end_inx))-1] %>% tolower()
     },
     error = function(err)
     {
-      message("start end error", err)
+      message("start end error is :")
+      message(err)
       temp_DF <- ""
     }
   )
@@ -460,111 +463,126 @@ PDF_list    <- pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
   
 #-----------------------------------------------------------------------------------------
 # build Json table for flutter 
-#--2---------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
   
 #
 # build Json Language string 
 #
-  TempString <- NULL
-  TempString <- paste0(TempString,'"language":')
-  TempString <- paste(TempString,'"')
-  TempString <- paste0(TempString,DF_Final$language.x[row])
-  TempString <- paste0(TempString,'",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(TempString)
+  LangString <- NULL
+  LangString <- paste0(LangString,'"language":')
+  LangString <- paste(LangString,'"')
+  LangString <- paste0(LangString,Df_Final$language.x[row])
+  LangString <- paste0(LangString,'",')
+  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(LangString)
 #  
 # build Json Subject string 
 #
-  TempString <- NULL
-  TempString <- paste0(TempString,'"subject":')
-  TempString <- paste(TempString,'"')
-  TempString <- paste0(TempString,DF_Final$Module_name.y.x[row])
-  TempString <- paste0(TempString,'",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(TempString)
+  SubjString <- NULL
+  SubjString <- paste0(SubjString,'"subject":')
+  SubjString <- paste(SubjString,'"')
+  SubjString <- paste0(SubjString,Df_Final$Module_name.y.x[row])
+  SubjString <- paste0(SubjString,'",')
+  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(SubjString)
 
 #  
 # build Json Grade  string hardcoded it must be corrected  
 #
-  TempString <- NULL
-  TempString <- paste0(TempString,'"grade": "Grade 12"')
-#  TempString <- paste(TempString,'"')
-#  TempString <- paste0(TempString,DF_Final$Module_name.y.x[row])
-#  TempString <- paste0(TempString,'",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(TempString)
+  GradeString <- NULL
+  GradeString <- paste0(GradeString,'"grade": "Grade 12",')
+  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(GradeString)
 #  
-# build Json Paper string 
+# build Json Paper string pdf
 #
-  TempString <- NULL
-  TempString <- paste0(TempString,'"paper":')
-  TempString <- paste(TempString,'"')
-  TempString <- paste0(TempString,DF_Final$DFkey2.x[row])
-  TempString <- paste(TempString,str_sub(DF_Final$Exam_Year.x[row],-2,-1))
-  TempString <- paste(TempString,str_sub(DF_Final$Exam_Sitting.x[row],1,3))
-  TempString <- paste0(TempString,'"')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(TempString)
+  PaperString <- NULL
+  PaperString <- paste0(PaperString,'"paper":')
+  PaperString <- paste(PaperString,'"')
+  PaperString <- paste0(PaperString,Df_Final$DFkey2.x[row])
+  PaperString <- paste(PaperString,str_sub(Df_Final$Exam_Year.x[row],-2,-1))
+  PaperString <- paste(PaperString,str_sub(Df_Final$Exam_Sitting.x[row],1,3))
+  PaperString <- paste0(PaperString,'",')
+  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PaperString)
 #  
 # build Questions  
 #
-  PDF_List_vector <- unlist(PDF_list_tidy)
-  Q_bool <- FALSE
-  Q_regex <- regex("^[1-9]\\.[1-9]\\.[1-20]")
-  O_bool <- FALSE
-  O_regex <- regex("^[a-d]\\S$")
-  Question <- NULL
-  Answers <- NULL
-  for (row01 in 1:10)
+  PDF_List_vector <- unlist(PDF_list_rev)
+  Q_regex <- regex("[1-9]\\.[1-9]\\.[1-9]")
+  O_regex <- regex("^[a-d]\\s\\s")
+  Question <- c("nullquestion")
+  Answers <- c("nullanswer")
+  First_Read_bool <- TRUE
+  PasteString <- NULL
+  Option_count <- 1
+  Options_bool <- TRUE
+  Questions_bool <- FALSE
+  row01 <- 1
+  for (row01 in 1:nrow(PDF_list_rev))
   {
-    message(str_sub(PDF_List_vector[row01],1,7))
-    if(str_detect(PDF_List_vector[row01],Q_regex)) 
+  if (Options_bool)
+  {
+    if(Option_count < 5)
+      {
+        if(Option_count == 1)
+          {
+            PasteString <- paste0(PasteString,'"Options":')
+            PasteString <- paste(PasteString,'[')
+          }
+          message ("Building options", row01)
+          PasteString <- paste(PasteString,"'")
+          PasteString <- paste(PasteString,PDF_List_vector[row01])
+          PasteString <- paste(PasteString,"',")
+          Option_count <- Option_count + 1 
+      }
+    else 
+      {
+      PasteString <- paste(PasteString,'],')
+      message(PasteString)
+      Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PasteString)
+      Option_count    <- 1
+      Options_bool    <- FALSE
+      Questions_bool  <- TRUE
+      PasteString <- paste0('",')
+      }
+  }
+    if (Questions_bool)
     {
-       message("detected question start")
+      message("doing bool for questions")
+      PasteString <- paste0(paste(PDF_List_vector[row01]),PasteString)
+      if(str_detect(PDF_List_vector[row01],Q_regex)) 
+      {
+        message("hit final question string")
+        message(PDF_List_vector[row01])
+        PasteString <- paste0('"question": "',PasteString)
+        Options_bool <- TRUE
+        Option_count <- 1 
+        Questions_bool <- FALSE
+        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PasteString)
+        PasteString <- ""
+        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PaperString)
+        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(LangString)
+        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(SubjString)
+        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(GradeString)
+        Question_String <- str_trim(str_sub(PDF_List_vector[row01],1,6))
+        message("Question String ->", Question_String, "<")
+        Answer_List <- PDF_Memo[str_detect(PDF_Memo, Question_String)]
+        message("Answer index = ", Answer_List)
+        Answer_option <- str_trim(Str_remove(Answer_List,Q_regex))
+        message()
+#        Answer_List <- str_detect(PDF_Memo, Question_String)
+#        Answer_index <- Which(Answer_List)
+#        tryCatch(
+#          {
+#            Answer_index <- which(PDF_Memo_unlist==Question_String)
+#          },
+#          error = function(err)
+#          {
+#            message("error finding answer - err is :")
+#            message(err)
+#          }
+#        )
+        message("Answer index = ", Answer_List)
+        }
     }
   }
 }
-#  
-# build Json ID string 
-#
-  TempString <- NULL
-  TempString <- paste0(TempString,'"ID":')
-  TempString <- paste(TempString,'"')
-# <format YEAR portion of ID>
-  TempString <- paste(TempString,str_sub(DF_Final$Exam_Year.x[row],-2,-1))
-# </format YEAR portion of ID>
-  # </format YEAR portion of ID>
-  TempString   <- ifelse(str_sub(DF_Final$language.x[row],1,1) == "e", 
-                         paste0(TempString,"0"),paste0(TempString,"1")) 
-  if(row < 010) { TempString <- paste0(TempString,"0")}
-  if(row < 100) { TempString <- paste0(TempString,"0")}
-  TempString <- paste0(TempString,row)
-# </format row portion of ID>
-  
-  TempString <- paste0(TempString,'"')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(TempString)
-#  
-# build Json options string 
-#
-  TempString <- NULL
-  QBool <- FALSE
-  Q
-  Obool <- Fasle
-  
-  if(str_detect(DF_temp$Module_name.x, regex("Limpopo ",                        ignore_case = TRUE)) & is.na(DF_temp$region), "Limpopo",       DF_temp$region) 
-  TempString <- paste0(TempString,'"ID":')
-  TempString <- paste(TempString,'"')
-  # <format YEAR portion of ID>
-  TempString <- paste(TempString,str_sub(DF_Final$Exam_Year.x[row],-2,-1))
-# </format YEAR portion of ID>
-  TempString   <- ifelse(str_sub(DF_Final$language.x[row],1,1) == "e", 
-                         paste0(TempString,"0"),paste0(TempString,"1")) 
-  if(row < 010) { TempString <- paste0(TempString,"0")}
-  if(row < 100) { TempString <- paste0(TempString,"0")}
-  TempString <- paste0(TempString,row)
-  # </format row portion of ID>
-  
-  
-  DOE_PastPaper_Exam_URLs <- filter(DOE_PastPaper_URL_per_year, str_detect(DOE_PastPaper_URL_per_year$URL_text, cregex("^\\d{4}")))
-  PDFQuestions_enriched <- data.frame(PDF_list_tidy %>% mutate(P_Year = DF_OnlyPDFs$Year[row], subject = DF_OnlyPDFs$Subject_Name[row]))
-  Question_df1 <- as.data.frame(Questions_enriched)
-  Question_df <- rbind(Question_df, Question_df1)
-  #  message(Questions_df)
-#}
-Question_df
+write.csv(Freedu_App_Fmt,"jsonfmt.csv", row.names = FALSE)
+
