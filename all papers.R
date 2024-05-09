@@ -1,17 +1,9 @@
-<<<<<<< HEAD
 
 ###<include libraries>
-=======
-#-------------------------------------------------------------------------------
-# included libraries 
-#-------------------------------------------------------------------------------
-
->>>>>>> 4bbeb8b2eb410e993ba185c41f1ec5cab0aaf9d4
 library(rvest)
 library(stringr)
 library(dplyr)
 library(pdftools)
-<<<<<<< HEAD
 library(httr)
 ####</include libraries>
 
@@ -24,12 +16,6 @@ DOE_PastPaper_Home_URL   <- "https://www.education.gov.za/Curriculum/NationalSen
 #  Build data frame of all links and test (i.e. past paper link and everything else)
 #
 DOE_PastPaper_URL_per_year<- data.frame( 
-=======
-
-DOE_PastPaper_Home_URL   <- "https://www.education.gov.za/Curriculum/NationalSeniorCertificate(NSC)Examinations/NSCPastExaminationpapers.aspx"
-DOE_PastPaper_Home_URL
-DOE_PastPaper_All_URL <- data.frame( 
->>>>>>> 4bbeb8b2eb410e993ba185c41f1ec5cab0aaf9d4
  
     URL = read_html(DOE_PastPaper_Home_URL)  
       %>% html_nodes("a") 
@@ -39,7 +25,6 @@ DOE_PastPaper_All_URL <- data.frame(
     URL_text = read_html(DOE_PastPaper_Home_URL) 
       %>% html_nodes("a") 
       %>% html_text() )
-<<<<<<< HEAD
 #
 # extract links where the link text contains "exam" and all links where the text starts with four digits representing the year"   
 #
@@ -84,7 +69,7 @@ DF_All_Subject_Link_S <- data.frame()
 # loop through per annum to build per year per subject 
 #
 for (row in 1:nrow(DF_PastpaperYear)) {
-#for (row in 1:2) {  
+#for (row in 1:5) {  
   message("Processing Row no: ", row)
   Annual_link                    <- DF_PastpaperYear$URL[row]
   Annual_link_HTML               <- read_html(Annual_link)
@@ -115,20 +100,32 @@ for (row in 1:nrow(DF_PastpaperYear)) {
           html_attr("href") %>%
           url_absolute(Annual_link))
   View(DF_YearSubject)
+    
     message("building dataframe subjects")
-  l_subjects <- Annual_link_HTML %>% html_nodes(".eds_containerTitle")
-  subject_df <- data.frame( Module_No = as.numeric(str_extract_all(l_subjects, "[0-9]{4}")), 
-                            Module_name = html_text(l_subjects))
+    message (typeof(Annual_link_HTML))
+    message (Annual_link_HTML %>% html_nodes(".eds_containerTitle"))
+    message(" ")
+    message (Annual_link_HTML %>% html_nodes(".eds_containerTitle") %>% html_attr("id")%>% substr(9,4))
+    message(" ")
+    message (Annual_link_HTML %>% html_nodes(".eds_containerTitle") %>% html_text())
+    l_subjects <- Annual_link_HTML %>% html_nodes(".eds_containerTitle") 
+#  l_subjects <- as.list(Annual_link_HTML %>% html_nodes(".eds_containerTitle") %>% html_attr("id"))
+  message (typeof(l_subjects))
+  subject_df <- data.frame( 
+    Module_No =
+      Annual_link_HTML %>% html_nodes(".eds_containerTitle") %>% html_attr("id"),
+    Module_name = Annual_link_HTML %>% html_nodes(".eds_containerTitle") %>% html_text())
   message("merging")
+  subject_df$Module_No <- gsub("[^0-9]", "", subject_df$Module_No) 
+  
+#  subject_df$Module_No <- subject_df$Module_No %>% str_replace("dnn_ctr1","") %>% str_replace("_dnnTITLE","") %>% str_replace("_titleLabel","") 
   df_FULL <-  merge(x=DF_YearSubject, y=subject_df, by="Module_No")
   DF_All_Subject_Link_S <- rbind(DF_All_Subject_Link_S, df_FULL )
 }
 # 
 write.csv(DF_All_Subject_Link_S,"PastpaperYearSubjectsLink.csv", row.names = FALSE)
 
-rm(DOE_PastPaperYearURL)
 rm(DF_PastpaperYear)
-rm(Annual_link_Subjects_HTML)
 rm(Annual_link_HTML)
 rm(df_FULL)
 rm(l_subjects)
@@ -228,7 +225,7 @@ for (row in 1:nrow(DF_OnlyPDFs)) {
 #for (row in 1:10) { 
   message( 'row no', row)
   message( 'URL>', DF_OnlyPDFs$PDF_URL[row], '</URL')
-  paper_link  <- DF_OnlyPDFs$PDF_URL[row]
+  qp_url  <- DF_OnlyPDFs$PDF_URL[row]
   Paper_Year  <- DF_OnlyPDFs$Year[row]
   
   tryCatch(
@@ -246,33 +243,6 @@ for (row in 1:nrow(DF_OnlyPDFs)) {
 }
 Question_df
 write.csv(temp_DF,"Dwnld_QPs.csv", row.names = FALSE)
-# 
-# //# 
-# #for (row in 1:nrow(DF_OnlyPDFs)) {
-# for (row in 1:20) { 
-#   message( 'row no', row)
-#   message( 'URL>', DF_OnlyPDFs$PDF_URL[row], '</URL')
-#   paper_link  <- DF_OnlyPDFs$PDF_URL[row]
-#   Paper_Year  <- DF_OnlyPDFs$Year[row]
-
-#   #  PDF_list   <- pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
-#   
-#   tryCatch(
-#     {
-#       message("trying readr")
-#       PDF_list = pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
-#       #      message(PDF_list)
-#     },
-#     error = function(err) 
-#     {
-#       message("read error for row ", row, "error")
-#     }
-#   )
-#
-#----------------------------------------------------------------------------------------------------
-#  add column to signify if the question [paper is a PDF-doc] 
-#  read document to check if it is a PDF. 
-#----------------------------------------------------------------------------------------------------
 gc()
 rm(DF_List)
 DF_List <- as.data.frame(read.csv("PastpaperYearSubjectsLink.csv", sep = ',', header = TRUE ))
@@ -424,32 +394,96 @@ write.csv(DF_Final,"DownloadList.csv", row.names = FALSE)
 #-----------------------------------------------------------------------------------------------------------
 # loop through Download list to create "questions.dart"for 
 #-----------------------------------------------------------------------------------------------------------
-DF_Temp1 <- as.data.frame(read.csv("DownloadList.csv", sep = ',', header = TRUE ))
-Df_Final <- DF_Temp1[DF_Temp1$Exam_Year.x>2014,]
+QPnMemo_DF_temp <- as.data.frame(read.csv("DownloadList.csv", sep = ',', header = TRUE ))
+#QPnMemo_DF <- QPnMemo_DF_temp[QPnMemo_DF_temp$Exam_Year.x>2014,]
+QPnMemo_DF <- QPnMemo_DF_temp[QPnMemo_DF_temp$Exam_Year.x > 2014,]
 Freedu_App_Fmt <- data.frame()
-#for (row in 1:norows(DF_tempCombined)) 
-row <- 1 
-for (row in 1:5)
+IDCntr <- 0 
+#for (row in 1:nrow(DF_tempCombined)) 
+#row <- 1 
+for (row in 1:20)
+# for (row in 1:nrow(QPnMemo_DF))
   {
-  paper_link  <- Df_Final$QP_URL[row]
-  PDF_list    <- pdf_text(paper_link) %>% readr::read_lines() %>% str_trim()
-  memo_link  <- Df_Final$Memo_URL[row]
-  PDF_Memo    <- pdf_text(memo_link) %>% readr::read_lines() %>% str_trim()
-  PDF_Memo_unlist <- unlist(PDF_Memo)
+#
+# check if the question paper and memo renders correctly.   
+#  if not skip the question paper and memo 
+#
+  message("question paper ", QPnMemo_DF$DFkey[row] )
+  qp_url  <- QPnMemo_DF$QP_URL[row]
+  memo_url  <- QPnMemo_DF$Memo_URL[row]
+
+#
+# QUESTION PAPER  
+# request URL
+# extract text from PDF
+# scrub the data
+  QP_PDF_text <- pdf_text(qp_url) %>% readr::read_lines() %>% str_trim()
+  QP_PDF_text <- tolower(QP_PDF_text) 
+#  QP_PDF_text <- QP_PDF_text[grep("\\S", QP_PDF_text)]
+  QP_PDF_text <- gsub("\\(\\d+\\)", "", QP_PDF_text)
+  QP_PDF_text <- gsub("\\(\\d+\\s*[Xx]\\s*\\d+\\)", "", QP_PDF_text)
+  temp_df <- data.frame(QP_PDF_text)
+# remove non question related content from pdf
+  subject    <- ("copyright|nsc|nss|kopiereg|please turn|blaai om|dbe/|dbo/|doe/")
+  not_req_string <-  str_detect(temp_df, subject)
+  temp_df <-  temp_df[!not_req_string]
+  temp_df <-  temp_df[temp_df$QP_text != "",]
+  temp_df <-  rev(temp_df)
+  temp_df <- data.frame(temp_df)
+  temp_df <-  temp_df[!not_req_string]
+  #
+  #-------------------------------------------------------------------------------
+  # setup end regex
+  #-------------------------------------------------------------------------------
+  #   
+  regex_S     <- paste0("^",QPnMemo_DF$regex_start[row]," ")
+#  strt_inx    <- (str_detect(QP_text, regex_S))
+  #   
+  #-------------------------------------------------------------------------------
+  # setup start regex
+  #-------------------------------------------------------------------------------
+  #   
+  regex_end <- paste0("^",toString(QPnMemo_DF$regex_end[row])," ")
+#  end_inx <- (str_detect(QP_text, regex_end))
+  #   
+  #-------------------------------------------------------------------------------
+  
+  for (x in 1:nrow(temp_df))
+  {
+   message("x = ", x, "str_detect ", str_detect(temp_df$temp_df[x], regex_end))
+  }
+  
+# remove non question related content from pdf
+#  QP_text_tidy <-  data.frame(QP_text_with_empties[QP_text_with_empties != ""])
+# reverse the order.
+#  QP_text_rev  <- rev(QP_text_tidy)
+#  QP_text_rev <- QP_text_tidy[rev(seq_len(nrow(QP_text_tidy))), , drop = FALSE]
+  
+#
+# MEMO   
+# request URL
+# extract text from PDF
+# scrub the data
+#  
+  memo_url  <- QPnMemo_DF$Memo_URL[row]
+  memo_text <- pdf_text(memo_url) %>% readr::read_lines() %>% str_trim()
+  memo_text <- gsub("\\(\\d+\\)", "", memo_text)
+  memo_text <- gsub("\\(\\d+\\s*[Xx]\\s*\\d+\\)", "", memo_text)
+  
 #
 #-------------------------------------------------------------------------------
 # find multiple choice start
 #-------------------------------------------------------------------------------
 #   
-   regex_S     <- paste0("^",Df_Final$regex_start[row]," ")
-   strt_inx    <- (str_detect(PDF_list, regex_S))
+   regex_S     <- paste0("^",QPnMemo_DF$regex_start[row]," ")
+   strt_inx    <- (str_detect(QP_text, regex_S))
 #   
 #-------------------------------------------------------------------------------
 # find multiple choice end
 #-------------------------------------------------------------------------------
 #   
-   regex_end <- paste0("^",toString(Df_Final$regex_end[row])," ")
-   end_inx <- (str_detect(PDF_list, regex_end))
+   regex_end <- paste0("^",toString(QPnMemo_DF$regex_end[row])," ")
+   end_inx <- (str_detect(QP_text, regex_end))
 #   
 #-------------------------------------------------------------------------------
 # extract all multiple choice using above start and end 
@@ -457,7 +491,7 @@ for (row in 1:5)
 # 
   tryCatch(
     {
-      temp_DF <- PDF_list[which(strt_inx):(which(end_inx))-1] %>% tolower()
+      temp_DF <- QP_text[which(strt_inx):(which(end_inx))-1] %>% tolower()
     },
     error = function(err)
     {
@@ -469,12 +503,12 @@ for (row in 1:5)
 # remove non question related content from pdf
   subject    <- ("copyright|nsc|nss|kopiereg|please turn|blaai om|dbe/|dbo/|doe/")
   not_req_string <-  str_detect(temp_DF, subject)
-  PDF_list_with_empties <-  temp_DF[!not_req_string]
+  QP_text_with_empties <-  temp_DF[!not_req_string]
 # remove non question related content from pdf
-  PDF_list_tidy <-  data.frame(PDF_list_with_empties[PDF_list_with_empties != ""])
-  PDF_list_rev  <- rev(PDF_list_tidy)
+  QP_text_tidy <-  data.frame(QP_text_with_empties[QP_text_with_empties != ""])
+  QP_text_rev  <- rev(QP_text_tidy)
 # reverse the order.
-  PDF_list_rev <- PDF_list_tidy[rev(seq_len(nrow(PDF_list_tidy))), , drop = FALSE]
+  QP_text_rev <- QP_text_tidy[rev(seq_len(nrow(QP_text_tidy))), , drop = FALSE]
   
 #-----------------------------------------------------------------------------------------
 # build Json table for flutter 
@@ -483,43 +517,44 @@ for (row in 1:5)
 #
 # build Json Language string 
 #
+  
   LangString <- NULL
   LangString <- paste0(LangString,'"language":')
-  LangString <- paste(LangString,'"')
-  LangString <- paste0(LangString,Df_Final$language.x[row])
+  LangString <- paste0(LangString,'"')
+  LangString <- paste0(LangString,QPnMemo_DF$language.x[row])
   LangString <- paste0(LangString,'",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(LangString)
+#  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(LangString)
 #  
 # build Json Subject string 
 #
   SubjString <- NULL
   SubjString <- paste0(SubjString,'"subject":')
   SubjString <- paste(SubjString,'"')
-  SubjString <- paste0(SubjString,Df_Final$Module_name.y.x[row])
+  SubjString <- paste0(SubjString,QPnMemo_DF$Module_name.y.x[row])
   SubjString <- paste0(SubjString,'",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(SubjString)
+#  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(SubjString)
 
 #  
 # build Json Grade  string hardcoded it must be corrected  
 #
   GradeString <- NULL
   GradeString <- paste0(GradeString,'"grade": "Grade 12",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(GradeString)
+#  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(GradeString)
 #  
 # build Json Paper string pdf
 #
   PaperString <- NULL
   PaperString <- paste0(PaperString,'"paper":')
   PaperString <- paste(PaperString,'"')
-  PaperString <- paste0(PaperString,Df_Final$DFkey2.x[row])
-  PaperString <- paste(PaperString,str_sub(Df_Final$Exam_Year.x[row],-2,-1))
-  PaperString <- paste(PaperString,str_sub(Df_Final$Exam_Sitting.x[row],1,3))
+  PaperString <- paste0(PaperString,QPnMemo_DF$DFkey2.x[row])
+  PaperString <- paste(PaperString,str_sub(QPnMemo_DF$Exam_Year.x[row],-2,-1))
+  PaperString <- paste(PaperString,str_sub(QPnMemo_DF$Exam_Sitting.x[row],1,3))
   PaperString <- paste0(PaperString,'",')
-  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PaperString)
+#  Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PaperString)
 #  
 # build Questions  
 #
-  PDF_List_vector <- unlist(PDF_list_rev)
+  PDF_List_vector <- unlist(QP_text_rev)
   Q_regex <- regex("[1-9]\\.[1-9]\\.[1-9]")
   O_regex <- regex("^[a-d]\\s\\s")
   Question <- c("nullquestion")
@@ -530,7 +565,8 @@ for (row in 1:5)
   Options_bool <- TRUE
   Questions_bool <- FALSE
   row01 <- 1
-  for (row01 in 1:nrow(PDF_list_rev))
+
+  for (row01 in 1:nrow(QP_text_rev))
   {
   if (Options_bool)
   {
@@ -538,19 +574,29 @@ for (row in 1:5)
       {
         if(Option_count == 1)
           {
+            IDString <- NULL
+            IDString <- paste0(IDString,'"ID":')
+            IDString <- paste0(IDString,'"')
+            IDCntr <- IDCntr + 1
+            IDString <- paste0(IDString, IDCntr)
+            IDString <- paste0(IDString,'",')
+            Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(IDString)
+            Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(LangString)
+            Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(SubjString)
+            Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(GradeString)
+            Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PaperString)
             PasteString <- paste0(PasteString,'"Options":')
             PasteString <- paste(PasteString,'[')
           }
-          message ("Building options", row01)
           PasteString <- paste(PasteString,"'")
-          PasteString <- paste(PasteString,PDF_List_vector[row01])
+          PasteString <- paste(PasteString,QP_text_rev[row01,1])
           PasteString <- paste(PasteString,"',")
           Option_count <- Option_count + 1 
       }
     else 
       {
       PasteString <- paste(PasteString,'],')
-      message(PasteString)
+      PasteString <- gsub("\\(\\)", "", PasteString)
       Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PasteString)
       Option_count    <- 1
       Options_bool    <- FALSE
@@ -560,153 +606,31 @@ for (row in 1:5)
   }
     if (Questions_bool)
     {
-      message("doing bool for questions")
-      PasteString <- paste0(paste(PDF_List_vector[row01]),PasteString)
-      if(str_detect(PDF_List_vector[row01],Q_regex)) 
+      PasteString <- paste0(paste(QP_text_rev[row01,1]),PasteString)
+      if(str_detect(QP_text_rev[row01,1],Q_regex)) 
       {
-        message("hit final question string")
-        message(PDF_List_vector[row01])
         PasteString <- paste0('"question": "',PasteString)
         Options_bool <- TRUE
         Option_count <- 1 
         Questions_bool <- FALSE
         Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PasteString)
         PasteString <- ""
-        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(PaperString)
-        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(LangString)
-        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(SubjString)
-        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(GradeString)
-        Question_String <- str_trim(str_sub(PDF_List_vector[row01],1,6))
-        message("Question String ->", Question_String, "<")
-        Answer_List <- PDF_Memo[str_detect(PDF_Memo, Question_String)]
-        message("Answer index = ", Answer_List)
-        Answer_option <- str_trim(Str_remove(Answer_List,Q_regex))
-        message()
-#        Answer_List <- str_detect(PDF_Memo, Question_String)
-#        Answer_index <- Which(Answer_List)
-#        tryCatch(
-#          {
-#            Answer_index <- which(PDF_Memo_unlist==Question_String)
-#          },
-#          error = function(err)
-#          {
-#            message("error finding answer - err is :")
-#            message(err)
-#          }
-#        )
-        message("Answer index = ", Answer_List)
+        Question_String <- str_trim(str_sub(QP_text_rev[row01,1],1,6))
+        Answer_List <- memo_text[str_detect(memo_text, Question_String)]
+        ans_inx <- unlist(gregexpr(Question_String, Answer_List))[1]
+        Answer_option <- str_sub(Answer_List,ans_inx,-1L)
+        Answer_option <- str_replace_all(Answer_option, "[^a-zA-Z0-9.]", " ")
+        Answer_option <- str_trim(str_replace_all(Answer_option, Question_String, ""))
+        Answer_option <- str_sub(Answer_option[1],1,1)
+        AnsString <- NULL
+        AnsString <- paste0(AnsString,'"answer_index":')
+        AnsString <- paste0(AnsString,'"')
+        AnsString <- paste0(AnsString,Answer_option)
+        AnsString <- paste0(AnsString,'",')
+        Freedu_App_Fmt[nrow(Freedu_App_Fmt) + 1,1] = paste0(AnsString)
         }
     }
   }
 }
-write.csv(Freedu_App_Fmt,"jsonfmt.csv", row.names = FALSE)
+write.csv(Freedu_App_Fmt,"jsonfmt2.csv", row.names = FALSE, quote = FALSE)
 
-=======
-
-DOE_PastPaper_Exam_URLs <- filter(DOE_PastPaper_All_URL, str_detect(DOE_PastPaper_All_URL$URL_text, regex("exam", ignore_case= TRUE)))
-DOE_PastPaper_Exam_URLs <-  filter(DOE_PastPaper_Exam_URLs, str_detect(DOE_PastPaper_Exam_URLs$URL_text, regex("\\d{4}")))
-                                                        
-DOE_PastPaper_Exam_URLs <- DOE_PastPaper_Exam_URLs %>% mutate(Exam_year = as.numeric(str_extract(DOE_PastPaper_Exam_URLs$URL_text,"\\d{4}")), Sitting = NA)   
-
-DOE_PastPaper_Exam_URLs$Sitting <- ifelse(str_detect(DOE_PastPaper_Exam_URLs$URL_text, regex("nov", ignore_case = TRUE)) 
-                                      & is.na(DOE_PastPaper_Exam_URLs$Sitting),"November",DOE_PastPaper_Exam_URLs$Sitting)
-                                                            
-                                                              
-DOE_PastPaper_Exam_URLs$Sitting <- ifelse(str_detect(DOE_PastPaper_Exam_URLs$URL_text, regex("feb", ignore_case = TRUE)) 
-                                      & is.na(DOE_PastPaper_Exam_URLs$Sitting),"February",DOE_PastPaper_Exam_URLs$Sitting)
-                                                              
-DOE_PastPaper_Exam_URLs$Sitting <- ifelse(str_detect(DOE_PastPaper_Exam_URLs$URL_text, regex("may", ignore_case = TRUE)) 
-                                    & is.na(DOE_PastPaper_Exam_URLs$Sitting),"May",DOE_PastPaper_Exam_URLs$Sitting)
-
-DOE_PastPaper_Exam_URLs
-DOE_PastPaper_Exam_links <- as.list(DOE_PastPaper_Exam_URLs$URL) 
-
-DF_All_Subject_Link_S <- data.frame()
-for (row in 1:nrow(DOE_PastPaper_Exam_URLs)) {
-# for (row in 1:3) {  
-  print(DOE_PastPaper_Exam_URLs$URL[row])
-  Annual_link                    <- DOE_PastPaper_Exam_URLs$URL[row]
-  Annual_link_HTML               <- read_html(Annual_link)
-  Title_text                     <- Annual_link_HTML %>% html_nodes("title") %>% html_text %>% str_replace_all("\\r", "") %>% str_replace_all("\\n", "") %>% str_replace_all("\\t", "")
-  Annual_link_Subjects           <- Annual_link_HTML %>% html_nodes(".eds_containerTitle")                              
-  DF_Annual_link_Subject_Name    <- data.frame( Module_No = as.numeric(str_extract_all(Annual_link_Subjects, "\\d{4}")), Module_name = html_text(Annual_link_Subjects))
-  DF_Annual_link_Subject_Link    <- data.frame(
- ##   PDF_URL = Annual_link_HTML %>%  html_nodes(".TitleCell") %>%  html_nodes("a") %>% html_attr("href") %>% url_absolute(DOE_PastPaper_Exam_URLs$URL[row]),
-##    PDF_URL = Annual_link_HTML %>%  html_nodes(".TitleCell") %>%  html_nodes("a") %>% html_attr("href") %>% url_absolute(DOE_PastPaper_Exam_URLs$URL[row]),
-    PDF_URL = Annual_link_HTML %>%  html_nodes(".TitleCell") %>%  html_nodes("a") %>% html_attr("href") %>% url_absolute(Annual_link),
-    Subject_Name = Annual_link_HTML %>% html_nodes(".TitleCell")  %>% html_nodes("a") %>% html_text() )
-  
-  DF_Annual_link_Subject_Link    <- DF_Annual_link_Subject_Link %>% 
-     mutate (Module_No = str_extract(PDF_URL,"\\d{4}$"),
-            Grade=c("12"), 
-            Year_title = c(Title_text),  
-            Paper_type = NA,
-            Paper_Language = NA)
-  
-  DF_Annual_link_Subject_Link_S  <- merge(x=DF_Annual_link_Subject_Link, y=DF_Annual_link_Subject_Name, by="Module_No")
-
-  DF_All_Subject_Link_S <- rbind(DF_All_Subject_Link_S, DF_Annual_link_Subject_Link_S )
-  
-  rm(Annual_link_HTML)
-  rm(Annual_link_Subjects)
-  rm(DF_Annual_link_Subject_Name)
-  rm(DF_Annual_link_Subject_Link)
-}
-
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "P1", "Paper 1")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "P2", "Paper 2")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "P3", "Paper 3")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "memo 1", "Memo Paper 1")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "Memo 1", "Memo Paper 1")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "memo 2", "Memo Paper 2")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "Memo 2", "Memo Paper 2")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "memo 3", "Memo Paper 3")
-DF_All_Subject_Link_S$Subject_Name <- str_replace(DF_All_Subject_Link_S$Subject_Name, "Memo 3", "Memo Paper 3")
-
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("English & Afrikaans", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "English and Afrikaans", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("Afrikaans", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "Afrikaans", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("English", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "English", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex(" Afr ", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "Afrikaans", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex(" Eng ", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "English", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("(Afr)", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "Afrikaans", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("(Eng)", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_Language), "English", DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse((is.na(DF_All_Subject_Link_S$Paper_Language) & (str_detect(DF_All_Subject_Link_S$Subject_Name, regex(" HL | FAL | SAL ", ignore_case = TRUE)))), DF_All_Subject_Link_S$Module_name, DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_Language <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex(" HL | FAL | SAL ", ignore_case = TRUE)), DF_All_Subject_Link_S$Module_name, DF_All_Subject_Link_S$Paper_Language) 
-DF_All_Subject_Link_S$Paper_type     <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex(" Memo ", ignore_case = TRUE)), "Memo", DF_All_Subject_Link_S$Paper_type) 
-DF_All_Subject_Link_S$Paper_type     <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex(" Answerbook ", ignore_case = TRUE)), "AnswerBook", DF_All_Subject_Link_S$Paper_type) 
-
-
-DF_All_Subject_Link_S <- DF_All_Subject_Link_S %>%  
-  mutate (Year = str_extract(DF_All_Subject_Link_S$Year_title,regex("\\d{4}")), Paper_No = NA)
-DF_All_Subject_Link_S
-
-DF_All_Subject_Link_S$Paper_No <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("paper 1", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_No), "paper 1", DF_All_Subject_Link_S$Paper_No) 
-DF_All_Subject_Link_S$Paper_No <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("paper 2", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_No), "paper 2", DF_All_Subject_Link_S$Paper_No)
-DF_All_Subject_Link_S$Paper_No <- ifelse(str_detect(DF_All_Subject_Link_S$Subject_Name, regex("paper 3", ignore_case = TRUE)) & is.na(DF_All_Subject_Link_S$Paper_No), "paper 3", DF_All_Subject_Link_S$Paper_No) 
-DF_All_Subject_Link_S$paper  <- tolower(paste(DF_All_Subject_Link_S$Module_name, DF_All_Subject_Link_S$Paper_No))
-
-DF_All_Subject_Link_S
-my_data <- as.data.frame(read.table("list of paper with multichoice.txt", sep = '/', header = TRUE ))
-my_data <- my_data %>% mutate(my_data =tolower(paste(my_data$subject, my_data$paper_no)) ) 
-my_data
-
-DF_final  <- merge(x=DF_All_Subject_Link_S, y=my_data, by="paper")
-DF_final
-typeof(my_data)
-
-write.csv(DF_All_Subject_Link_S,"Freeedu.csv", row.names = FALSE)
-#
-# extract papers with multiple choice questions 
-# 
-
-DF_All_Subject_Link_2 <- DF_All_Subject_Link_S %>%  filter(toupper(DF_All_Subject_Link_S$Module_name) == "AGRICULTURAL MANAGEMENT PRACTICES")
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "english")) 
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "xitsonga")) 
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "tshivenda")) 
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "siswati")) 
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "sepedi")) 
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "setswana"))
-#DF_All_Subject_Link_2 <- DF_All_Subject_Link_2 %>%  filter(!(tolower(DF_All_Subject_Link_2$Module_name) == "accounting"))
-
-DF_All_Subject_Link_2
->>>>>>> 4bbeb8b2eb410e993ba185c41f1ec5cab0aaf9d4

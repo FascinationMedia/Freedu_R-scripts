@@ -22,7 +22,7 @@ library(dplyr)
 # 2019 May/June
 #My_Url <- "https://www.education.gov.za/2019JuneNSCExamPapers.aspx"
 # 2019 May/Junev
-My_Url <- "https://www.education.gov.za/2019NovExams.aspx"
+My_Url <- "https://www.education.gov.za/Curriculum/NationalSeniorCertificate(NSC)Examinations/2022NovemberExams.aspx"
 # 2020 November
 #My_Url <- "https://www.education.gov.za/Curriculum/NationalSeniorCertificate(NSC)Examinations/2020NSCExamPapers.aspx"
 #
@@ -34,7 +34,8 @@ c_Title_text
 #
 # build subject data frame 
 #-------------------------
-l_subjects <- read_html(My_Url) %>%  html_nodes(".eds_containerTitle")
+My_Url_html_nodes <- read_html(My_Url)  %>% html_nodes(My_Url_html, ".eds_containerTitle") %>% html_text2()
+My_Url_html_nodes <- html_nodes(My_Url_html, ".eds_containerTitle") %>% 
 subject_df <- data.frame( Module_No = as.numeric(str_extract_all(l_subjects, "[0-9]+")), 
                           Module_name = html_text(l_subjects))
 subject_df
